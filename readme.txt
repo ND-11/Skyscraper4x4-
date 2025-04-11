@@ -32,6 +32,6 @@ Requirements:
 Console version:
 python buildings.py
 
-Demo: 
+Demo: https://njood.pythonanywhere.com/
 
 Tip: Smaller numbers mean fewer tall buildings are visible from that side!

@@ -3,6 +3,7 @@
 # The program uses backtracking to find a valid arrangement of buildings.
 # This is the raw implementation without any web framework or GUI.
 # It can be run in a console or terminal.
+# This version is the same as raw.py it's just a copy of it for downloading purpose.
 
 from typing import List, Dict
 

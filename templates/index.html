@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skyscraper Puzzle 4x4</title>
+  <link rel="stylesheet" href="static/style.css">
+</head>
+
+<body>
+  <h1>Skyscraper/ Buildings Puzzle</h1>
+
+  <div class="instructions">
+    <p>Fill in the clues around the edges (numbers 1-4). The numbers in the grid represent building heights. Each number
+      must appear exactly once in each row and column. The clues indicate how many buildings are visible from that
+      direction (taller buildings block shorter ones behind them).
+      <br>
+      <br>
+
+      <i> Note: Clues can be left empty and will be considered missing." </i>
+    </p>
+  </div>
+
+  <div class="game-container" id="gameBoard"></div>
+
+  <div class="button-group">
+    <button id="resetBtn">Reset Puzzle</button>
+    <button id="solveBtn">Solve Puzzle</button>
+  </div>
+
+  <div id="message" class="message"></div>
+
+  <!-- Code panel tab -->
+  <div class="code-tab" id="codeTab">
+    <span>View Code</span>
+  </div>
+
+  <!-- Code panel content -->
+  <div class="code-panel" id="codePanel">
+    <h3 class="code-header">Skyscraper Puzzle Solver Code</h3>
+    <pre><code><span class="keyword">from</span> <span class="variable">typing</span> <span class="keyword">import</span> <span class="variable">List</span>, <span class="variable">Dict</span>
+
+<span class="keyword">def</span> <span class="function">get_clue_input</span>(<span class="variable">prompt</span>: <span class="type">str</span>) -> <span class="type">int</span>:
+  <span class="string">"""Get a single clue input from the user."""</span>
+  <span class="keyword">while</span> <span class="keyword">True</span>:
+    <span class="keyword">try</span>:
+      <span class="variable">value</span> = <span class="function">int</span>(<span class="function">input</span>(<span class="variable">prompt</span>))
+      <span class="keyword">if</span> <span class="number">0</span> <= <span class="variable">value</span> <= <span class="number">4</span>:
+        <span class="keyword">return</span> <span class="variable">value</span>
+      <span class="keyword">else</span>:
+        <span class="function">print</span>(<span class="string">"Please enter a number between 0 and 4."</span>)
+    <span class="keyword">except</span> <span class="variable">ValueError</span>:
+      <span class="function">print</span>(<span class="string">"Invalid input. Please enter a number between 0 and 4."</span>)
+
+<span class="keyword">def</span> <span class="function">count_visible</span>(<span class="variable">buildings</span>: <span class="type">List</span>[<span class="type">int</span>]) -> <span class="type">int</span>:
+  <span class="string">"""Count the number of visible buildings from a given perspective."""</span>
+  <span class="variable">max_height</span> = <span class="number">0</span>
+  <span class="variable">visible</span> = <span class="number">0</span>
+  <span class="keyword">for</span> <span class="variable">height</span> <span class="keyword">in</span> <span class="variable">buildings</span>:
+    <span class="keyword">if</span> <span class="variable">height</span> > <span class="variable">max_height</span>:
+      <span class="variable">visible</span> += <span class="number">1</span>
+      <span class="variable">max_height</span> = <span class="variable">height</span>
+  <span class="keyword">return</span> <span class="variable">visible</span>
+
+<span class="keyword">def</span> <span class="function">is_valid</span>(<span class="variable">grid</span>: <span class="type">List</span>[<span class="type">List</span>[<span class="type">int</span>]], <span class="variable">row</span>: <span class="type">int</span>, <span class="variable">col</span>: <span class="type">int</span>, <span class="variable">num</span>: <span class="type">int</span>, <span class="variable">clues</span>: <span class="type">Dict</span>[<span class="type">str</span>, <span class="type">List</span>[<span class="type">int</span>]]) -> <span class="type">bool</span>:
+  <span class="string">"""Check if placing a number in the grid is valid."""</span>
+  <span class="comment"># Check uniqueness in row and column</span>
+  <span class="keyword">if</span> <span class="variable">num</span> <span class="keyword">in</span> <span class="variable">grid</span>[<span class="variable">row</span>] <span class="keyword">or</span> <span class="variable">num</span> <span class="keyword">in</span> [<span class="variable">grid</span>[<span class="variable">i</span>][<span class="variable">col</span>] <span class="keyword">for</span> <span class="variable">i</span> <span class="keyword">in</span> <span class="function">range</span>(<span class="number">4</span>)]:
+    <span class="keyword">return</span> <span class="keyword">False</span>
+
+  <span class="comment"># Temporarily place the number</span>
+  <span class="variable">grid</span>[<span class="variable">row</span>][<span class="variable">col</span>] = <span class="variable">num</span>
+
+  <span class="comment"># Check row visibility if completed</span>
+  <span class="keyword">if</span> <span class="function">all</span>(<span class="variable">grid</span>[<span class="variable">row</span>]):
+    <span class="variable">left</span>, <span class="variable">right</span> = <span class="variable">clues</span>[<span class="string">'left'</span>][<span class="variable">row</span>], <span class="variable">clues</span>[<span class="string">'right'</span>][<span class="variable">row</span>]
+    <span class="keyword">if</span> <span class="variable">left</span> <span class="keyword">and</span> <span class="function">count_visible</span>(<span class="variable">grid</span>[<span class="variable">row</span>]) != <span class="variable">left</span>:
+      <span class="variable">grid</span>[<span class="variable">row</span>][<span class="variable">col</span>] = <span class="number">0</span>
+      <span class="keyword">return</span> <span class="keyword">False</span>
+    <span class="keyword">if</span> <span class="variable">right</span> <span class="keyword">and</span> <span class="function">count_visible</span>(<span class="variable">grid</span>[<span class="variable">row</span>][::<span class="operator">-</span><span class="number">1</span>]) != <span class="variable">right</span>:
+      <span class="variable">grid</span>[<span class="variable">row</span>][<span class="variable">col</span>] = <span class="number">0</span>
+      <span class="keyword">return</span> <span class="keyword">False</span>
+
+  <span class="comment"># Check column visibility if completed</span>
+  <span class="variable">col_vals</span> = [<span class="variable">grid</span>[<span class="variable">r</span>][<span class="variable">col</span>] <span class="keyword">for</span> <span class="variable">r</span> <span class="keyword">in</span> <span class="function">range</span>(<span class="number">4</span>)]
+  <span class="keyword">if</span> <span class="function">all</span>(<span class="variable">col_vals</span>):
+    <span class="variable">top</span>, <span class="variable">bottom</span> = <span class="variable">clues</span>[<span class="string">'top'</span>][<span class="variable">col</span>], <span class="variable">clues</span>[<span class="string">'bottom'</span>][<span class="variable">col</span>]
+    <span class="keyword">if</span> <span class="variable">top</span> <span class="keyword">and</span> <span class="function">count_visible</span>(<span class="variable">col_vals</span>) != <span class="variable">top</span>:
+      <span class="variable">grid</span>[<span class="variable">row</span>][<span class="variable">col</span>] = <span class="number">0</span>
+      <span class="keyword">return</span> <span class="keyword">False</span>
+    <span class="keyword">if</span> <span class="variable">bottom</span> <span class="keyword">and</span> <span class="function">count_visible</span>(<span class="variable">col_vals</span>[::<span class="operator">-</span><span class="number">1</span>]) != <span class="variable">bottom</span>:
+      <span class="variable">grid</span>[<span class="variable">row</span>][<span class="variable">col</span>] = <span class="number">0</span>
+      <span class="keyword">return</span> <span class="keyword">False</span>
+
+  <span class="comment"># Restore and approve</span>
+  <span class="variable">grid</span>[<span class="variable">row</span>][<span class="variable">col</span>] = <span class="number">0</span>
+  <span class="keyword">return</span> <span class="keyword">True</span>
+
+<span class="keyword">def</span> <span class="function">solve</span>(<span class="variable">grid</span>: <span class="type">List</span>[<span class="type">List</span>[<span class="type">int</span>]], <span class="variable">clues</span>: <span class="type">Dict</span>[<span class="type">str</span>, <span class="type">List</span>[<span class="type">int</span>]], <span class="variable">row</span>: <span class="type">int</span> = <span class="number">0</span>, <span class="variable">col</span>: <span class="type">int</span> = <span class="number">0</span>) -> <span class="type">bool</span>:
+  <span class="string">"""Solve the skyscraper puzzle using backtracking."""</span>
+  <span class="keyword">if</span> <span class="variable">row</span> == <span class="number">4</span>:  <span class="comment"># If we've filled all rows</span>
+    <span class="keyword">return</span> <span class="keyword">True</span>
+
+  <span class="variable">next_row</span>, <span class="variable">next_col</span> = (<span class="variable">row</span>, <span class="variable">col</span> + <span class="number">1</span>) <span class="keyword">if</span> <span class="variable">col</span> < <span class="number">3</span> <span class="keyword">else</span> (<span class="variable">row</span> + <span class="number">1</span>, <span class="number">0</span>)
+
+  <span class="keyword">for</span> <span class="variable">num</span> <span class="keyword">in</span> <span class="function">range</span>(<span class="number">1</span>, <span class="number">5</span>):  <span class="comment"># Numbers 1 to 4</span>
+    <span class="keyword">if</span> <span class="function">is_valid</span>(<span class="variable">grid</span>, <span class="variable">row</span>, <span class="variable">col</span>, <span class="variable">num</span>, <span class="variable">clues</span>):
+      <span class="variable">grid</span>[<span class="variable">row</span>][<span class="variable">col</span>] = <span class="variable">num</span>
+      <span class="keyword">if</span> <span class="function">solve</span>(<span class="variable">grid</span>, <span class="variable">clues</span>, <span class="variable">next_row</span>, <span class="variable">next_col</span>):
+        <span class="keyword">return</span> <span class="keyword">True</span>
+      <span class="variable">grid</span>[<span class="variable">row</span>][<span class="variable">col</span>] = <span class="number">0</span>  <span class="comment"># Backtrack</span>
+
+  <span class="keyword">return</span> <span class="keyword">False</span>  <span class="comment"># No solution found</span>
+
+<span class="keyword">def</span> <span class="function">main</span>():
+  <span class="string">"""Main function to run the skyscraper solver."""</span>
+  <span class="comment"># Initialize the grid</span>
+  <span class="variable">grid</span> = [[<span class="number">0</span> <span class="keyword">for</span> <span class="variable">_</span> <span class="keyword">in</span> <span class="function">range</span>(<span class="number">4</span>)] <span class="keyword">for</span> <span class="variable">_</span> <span class="keyword">in</span> <span class="function">range</span>(<span class="number">4</span>)]
+
+  <span class="comment"># Get clues from the user</span>
+  <span class="variable">clues</span> = {
+    <span class="string">'top'</span>: [<span class="function">get_clue_input</span>(<span class="string">f"Enter top clue for column {i}: "</span>) <span class="keyword">for</span> <span class="variable">i</span> <span class="keyword">in</span> <span class="function">range</span>(<span class="number">4</span>)],
+    <span class="string">'bottom'</span>: [<span class="function">get_clue_input</span>(<span class="string">f"Enter bottom clue for column {i}: "</span>) <span class="keyword">for</span> <span class="variable">i</span> <span class="keyword">in</span> <span class="function">range</span>(<span class="number">4</span>)],
+    <span class="string">'left'</span>: [<span class="function">get_clue_input</span>(<span class="string">f"Enter left clue for row {i}: "</span>) <span class="keyword">for</span> <span class="variable">i</span> <span class="keyword">in</span> <span class="function">range</span>(<span class="number">4</span>)],
+    <span class="string">'right'</span>: [<span class="function">get_clue_input</span>(<span class="string">f"Enter right clue for row {i}: "</span>) <span class="keyword">for</span> <span class="variable">i</span> <span class="keyword">in</span> <span class="function">range</span>(<span class="number">4</span>)]
+  }
+
+  <span class="comment"># Solve the puzzle</span>
+  <span class="keyword">if</span> <span class="function">solve</span>(<span class="variable">grid</span>, <span class="variable">clues</span>):
+    <span class="function">print</span>(<span class="string">"Solution:"</span>)
+    <span class="keyword">for</span> <span class="variable">row</span> <span class="keyword">in</span> <span class="variable">grid</span>:
+      <span class="function">print</span>(<span class="string">" "</span>.<span class="function">join</span>(<span class="function">map</span>(<span class="variable">str</span>, <span class="variable">row</span>)))
+  <span class="keyword">else</span>:
+    <span class="function">print</span>(<span class="string">"No solution exists."</span>)
+
+<span class="keyword">if</span> <span class="variable">__name__</span> == <span class="string">"__main__"</span>:
+  <span class="function">main</span>()</code></pre>
+    <a href="https://github.com/example/skyscraper-puzzle" class="github-btn" target="_blank">View on GitHub</a>
+    <a href="/static/buildings.py" class="github-btn" download="buildings.py">Download</a>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const gameBoard = document.getElementById('gameBoard');
+      const solveBtn = document.getElementById('solveBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const codeTab = document.getElementById('codeTab');
+      const codePanel = document.getElementById('codePanel');
+      const messageDiv = document.getElementById('message');
+
+      // Create the game board
+      function createBoard() {
+        // Clear existing board
+        gameBoard.innerHTML = '';
+
+        // Create 6x6 grid (4x4 solution + surrounding clues)
+        for (let row = 0; row < 6; row++) {
+          for (let col = 0; col < 6; col++) {
+            const cell = document.createElement('div');
+
+            // Top clues (row 0, columns 1-4)
+            if (row === 0 && col > 0 && col < 5) {
+              cell.className = 'clue-cell editable';
+              cell.innerHTML = `<input type="number" min="1" max="4" data-row="${row}" data-col="${col}">`;
+            }
+            // Bottom clues (row 5, columns 1-4)
+            else if (row === 5 && col > 0 && col < 5) {
+              cell.className = 'clue-cell editable';
+              cell.innerHTML = `<input type="number" min="1" max="4" data-row="${row}" data-col="${col}">`;
+            }
+            // Left clues (column 0, rows 1-4)
+            else if (col === 0 && row > 0 && row < 5) {
+              cell.className = 'clue-cell editable';
+              cell.innerHTML = `<input type="number" min="1" max="4" data-row="${row}" data-col="${col}">`;
+            }
+            // Right clues (column 5, rows 1-4)
+            else if (col === 5 && row > 0 && row < 5) {
+              cell.className = 'clue-cell editable';
+              cell.innerHTML = `<input type="number" min="1" max="4" data-row="${row}" data-col="${col}">`;
+            }
+            // Corner cells (empty)
+            else if ((row === 0 || row === 5) && (col === 0 || col === 5)) {
+              cell.className = 'clue-cell';
+            }
+            // Solution cells (center 4x4)
+            else {
+              cell.className = 'solution-cell';
+              cell.textContent = '';
+              cell.setAttribute('data-row', row);
+              cell.setAttribute('data-col', col);
+            }
+
+            gameBoard.appendChild(cell);
+          }
+        }
+      }
+
+      // Initialize the board
+      createBoard();
+
+      // Show message
+      function showMessage(message, isSuccess) {
+        messageDiv.textContent = message;
+        messageDiv.className = `message ${isSuccess ? 'success' : 'error'}`;
+        messageDiv.style.display = 'block';
+        setTimeout(() => {
+          messageDiv.style.display = 'none';
+        }, 3000);
+      }
+
+      // Collect clues from the board
+      function getClues() {
+        const inputs = document.querySelectorAll('.editable input');
+        const clues = {
+          top: [],
+          bottom: [],
+          left: [],
+          right: []
+        };
+
+        inputs.forEach(input => {
+          const row = parseInt(input.dataset.row);
+          const col = parseInt(input.dataset.col);
+          const value = input.value ? parseInt(input.value) : 0;
+
+          if (row === 0) clues.top[col - 1] = value;
+          else if (row === 5) clues.bottom[col - 1] = value;
+          else if (col === 0) clues.left[row - 1] = value;
+          else if (col === 5) clues.right[row - 1] = value;
+        });
+
+        return clues;
+      }
+
+      function checkCells() {
+        const cells = document.querySelectorAll('.solution-cell');
+        const allFilled = [...cells].every(cell => cell.textContent);
+        solveBtn.disabled = allFilled;
+      }
+
+      // Solve button functionality
+      solveBtn.addEventListener('click', async function () {
+        const clues = getClues();
+
+        try {
+          const response = await fetch('http://localhost:5000/solve', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(clues)
+          });
+
+          const data = await response.json();
+
+          if (data.status === 'success') {
+            // Fill in the solution
+            for (let row = 0; row < 4; row++) {
+              for (let col = 0; col < 4; col++) {
+                const cell = document.querySelector(`.solution-cell[data-row="${row + 1}"][data-col="${col + 1}"]`);
+                if (cell) {
+                  cell.textContent = data.solution[row][col];
+                }
+              }
+            }
+            checkCells(); // Disable button
+            showMessage('Puzzle solved successfully!', true);
+          } else {
+            showMessage('No solution exists for these clues', false);
+          }
+        } catch (error) {
+          showMessage('Error connecting to the solver service', false);
+          console.error('Error:', error);
+        }
+      });
+
+      // Reset button functionality
+      resetBtn.addEventListener('click', function () {
+        createBoard();
+        checkCells(); // Enable button
+      });
+
+      // Validate input (1-4 only)
+      gameBoard.addEventListener('input', function (e) {
+        if (e.target.tagName === 'INPUT') {
+          const value = parseInt(e.target.value);
+          if (value < 1) e.target.value = 1;
+          if (value > 4) e.target.value = 4;
+        }
+      });
+
+      // Code panel toggle
+      codeTab.addEventListener('click', function () {
+        codeTab.classList.toggle('active');
+        codePanel.classList.toggle('active');
+      });
+
+      checkCells();
+
+    });
+  </script>
+</body>
+
+</html>

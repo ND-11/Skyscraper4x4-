@@ -1,11 +1,11 @@
 # Skyscraper Puzzle Solver
 # This program solves a 4x4 skyscraper puzzle where the user provides clues for the visibility of buildings from each side.
-# The program uses backtracking to find a valid arrangement of buildings.
+# The program uses backtracking to find all valid arrangements of buildings.
 # This is the raw implementation without any web framework or GUI.
 # It can be run in a console or terminal.
-# This version is the same as buildings.py it's just a copy of it for downloading purpose.
+# Updated to match the functionality of app.py (finds all solutions)
 
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 
 def get_clue_input(prompt: str) -> int:
@@ -21,6 +21,18 @@ def get_clue_input(prompt: str) -> int:
             print("Invalid input. Please enter a number between 0 and 4.")
 
 
+def get_yes_no_input(prompt: str) -> bool:
+    """Get yes/no input from the user."""
+    while True:
+        response = input(prompt).strip().lower()
+        if response in ('y', 'yes'):
+            return True
+        elif response in ('n', 'no'):
+            return False
+        else:
+            print("Please enter 'y' or 'n'.")
+
+
 def count_visible(buildings: List[int]) -> int:
     """Count the number of visible buildings from a given perspective."""
     max_height = 0
@@ -32,16 +44,14 @@ def count_visible(buildings: List[int]) -> int:
     return visible
 
 
-def is_valid(grid: List[List[int]], row: int, col: int, num: int, clues: Dict[str, List[int]]) -> bool:
+def is_valid(grid: List[List[int]], row: int, col: int, num: int,
+             clues: Dict[str, List[int]]) -> bool:
     """Check if placing a number in the grid is valid."""
-    # Check uniqueness in row and column
     if num in grid[row] or num in [grid[i][col] for i in range(4)]:
         return False
 
-    # Temporarily place the number
     grid[row][col] = num
 
-    # Check row visibility if completed
     if all(grid[row]):
         left, right = clues['left'][row], clues['right'][row]
         if left and count_visible(grid[row]) != left:
@@ -51,7 +61,6 @@ def is_valid(grid: List[List[int]], row: int, col: int, num: int, clues: Dict[st
             grid[row][col] = 0
             return False
 
-    # Check column visibility if completed
     col_vals = [grid[r][col] for r in range(4)]
     if all(col_vals):
         top, bottom = clues['top'][col], clues['bottom'][col]
@@ -62,26 +71,30 @@ def is_valid(grid: List[List[int]], row: int, col: int, num: int, clues: Dict[st
             grid[row][col] = 0
             return False
 
-    # Restore and approve
     grid[row][col] = 0
     return True
 
 
-def solve(grid: List[List[int]], clues: Dict[str, List[int]], row: int = 0, col: int = 0) -> bool:
-    """Solve the skyscraper puzzle using backtracking."""
-    if row == 4:  # If we've filled all rows
-        return True
+def solve_all(grid: List[List[int]], clues: Dict[str, List[int]],
+              row: int = 0, col: int = 0, solutions: List[List[List[int]]] = None) -> List[List[List[int]]]:
+    """Find all solutions to the skyscraper puzzle using backtracking."""
+    if solutions is None:
+        solutions = []
+
+    if row == 4:
+        # Make a deep copy of the grid to store as a solution
+        solutions.append([row[:] for row in grid])
+        return solutions
 
     next_row, next_col = (row, col + 1) if col < 3 else (row + 1, 0)
 
-    for num in range(1, 5):  # Numbers 1 to 4
+    for num in range(1, 5):
         if is_valid(grid, row, col, num, clues):
             grid[row][col] = num
-            if solve(grid, clues, next_row, next_col):
-                return True
-            grid[row][col] = 0  # Backtrack
+            solutions = solve_all(grid, clues, next_row, next_col, solutions)
+            grid[row][col] = 0
 
-    return False  # No solution found
+    return solutions
 
 
 def main():
@@ -90,20 +103,36 @@ def main():
     grid = [[0 for _ in range(4)] for _ in range(4)]
 
     # Get clues from the user
+    print("Enter clues (0 if no clue):")
     clues = {
-        'top': [get_clue_input(f"Enter top clue for column {i}: ") for i in range(4)],
-        'bottom': [get_clue_input(f"Enter bottom clue for column {i}: ") for i in range(4)],
-        'left': [get_clue_input(f"Enter left clue for row {i}: ") for i in range(4)],
-        'right': [get_clue_input(f"Enter right clue for row {i}: ") for i in range(4)]
+        'top': [get_clue_input(f"Enter top clue for column {i+1}: ") for i in range(4)],
+        'bottom': [get_clue_input(f"Enter bottom clue for column {i+1}: ") for i in range(4)],
+        'left': [get_clue_input(f"Enter left clue for row {i+1}: ") for i in range(4)],
+        'right': [get_clue_input(f"Enter right clue for row {i+1}: ") for i in range(4)]
     }
 
-    # Solve the puzzle
-    if solve(grid, clues):
-        print("Solution:")
-        for row in grid:
+    # Solve the puzzle and find all solutions
+    solutions = solve_all(grid, clues)
+
+    # Display results
+    if not solutions:
+        print("\nNo solution exists.")
+    elif len(solutions) == 1:
+        print("\nUnique solution found:")
+        for row in solutions[0]:
             print(" ".join(map(str, row)))
     else:
-        print("No solution exists.")
+        print(f"\nFound {len(solutions)} possible solutions.")
+        if get_yes_no_input("Would you like to print all solutions? (y/n): "):
+            print("\nAll solutions:")
+            for i, solution in enumerate(solutions, 1):
+                print(f"\nSolution {i}:")
+                for row in solution:
+                    print(" ".join(map(str, row)))
+        else:
+            print("\nFirst solution:")
+            for row in solutions[0]:
+                print(" ".join(map(str, row)))
 
 
 if __name__ == "__main__":

@@ -1,6 +1,10 @@
 Skyscraper Puzzle Solver
 ========================
 
+Update: Now gives all possible answers
+========================
+
+
 What is this?
 ------------
 A web app that solves 4x4 Skyscraper puzzles. Enter clues around the edges and it will fill in the correct building heights (1-4) in the grid.

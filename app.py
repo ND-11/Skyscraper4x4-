@@ -1,11 +1,9 @@
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
-from typing import List, Dict
-
-app = Flask(__name__)
-CORS(app)
+from typing import List, Dict, Tuple
 
 app = Flask(__name__, static_folder='static')
+CORS(app)
 
 
 def count_visible(buildings: List[int]) -> int:
@@ -48,21 +46,25 @@ def is_valid(grid: List[List[int]], row: int, col: int, num: int,
     return True
 
 
-def solve(grid: List[List[int]], clues: Dict[str, List[int]],
-          row: int = 0, col: int = 0) -> bool:
+def solve_all(grid: List[List[int]], clues: Dict[str, List[int]],
+              row: int = 0, col: int = 0, solutions: List[List[List[int]]] = None) -> List[List[List[int]]]:
+    if solutions is None:
+        solutions = []
+
     if row == 4:
-        return True
+        # Make a deep copy of the grid to store as a solution
+        solutions.append([row[:] for row in grid])
+        return solutions
 
     next_row, next_col = (row, col + 1) if col < 3 else (row + 1, 0)
 
     for num in range(1, 5):
         if is_valid(grid, row, col, num, clues):
             grid[row][col] = num
-            if solve(grid, clues, next_row, next_col):
-                return True
+            solutions = solve_all(grid, clues, next_row, next_col, solutions)
             grid[row][col] = 0
 
-    return False
+    return solutions
 
 
 @app.route('/')
@@ -82,9 +84,22 @@ def solve_puzzle():
         }
 
         grid = [[0 for _ in range(4)] for _ in range(4)]
+        solutions = solve_all(grid, clues)
 
-        if solve(grid, clues):
-            return jsonify({'status': 'success', 'solution': grid})
+        if solutions:
+            if len(solutions) == 1:
+                return jsonify({
+                    'status': 'success',
+                    'solution': solutions[0],
+                    'message': 'Unique solution found'
+                })
+            else:
+                return jsonify({
+                    'status': 'multiple',
+                    'solutions': solutions,
+                    'count': len(solutions),
+                    'message': f'Found {len(solutions)} possible solutions'
+                })
         return jsonify({'status': 'error', 'message': 'No solution exists'})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})

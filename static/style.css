@@ -389,7 +389,6 @@ button {
 
   input, select, textarea {
     font-size: 16px;
-    /* Prevents zooming on focus */
   }
 
   .code-tab {
@@ -423,5 +422,22 @@ button {
 
   .code-tab.active {
     right: 75%;
+  }
+
+  .solution-nav {
+    gap: 10px;
+    margin: 10px 0;
+  }
+
+  .solution-nav button {
+    padding: 5px 8px;
+    font-size: 12px;
+    min-width: 40px;
+  }
+
+  #solutionCounter {
+    font-size: 14px;
+    min-width: 80px;
+    padding: 0 5px;
   }
 }
